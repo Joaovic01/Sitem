@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Simulador de Empréstimo — Calcule parcelas, total e juros</title>
+  <meta name="description" content="Simule um empréstimo informando valor, taxa de juros ao mês e número de parcelas. Veja o valor da parcela, o total pago e o total de juros." />
+  <link rel="canonical" href="https://exemplo.com/simulador-emprestimo" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Simulador de Empréstimo — Calcule parcelas, total e juros" />
+  <meta property="og:description" content="Simule um empréstimo com taxa ao mês e número de parcelas. Resultado com parcela, total pago e juros." />
+  <meta property="og:locale" content="pt_BR" />
+
+  <meta name="theme-color" content="#0b1220" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Simulador de Empréstimo",
+    "description": "Ferramenta para simular parcelas e custo total de um empréstimo com taxa mensal e número de parcelas.",
+    "inLanguage": "pt-BR"
+  }
+  </script>
+</head>
+
+<body>
+  <a href="#conteudo" class="skip-link">Pular para o conteúdo</a>
+
+  <header>
+    <div class="container">
+      <p class="brand" aria-label="Nome do site">
+        <a href="/" rel="home">Calculadoras</a>
+      </p>
+
+      <nav aria-label="Navegação principal">
+        <ul>
+          <li><a href="/simulador-emprestimo" aria-current="page">Empréstimo</a></li>
+          <li><a href="/juros-compostos">Juros compostos</a></li>
+          <li><a href="/financiamento">Financiamento</a></li>
+          <li><a href="/contato">Contato</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <article class="container">
+      <header>
+        <h1>Simulador de empréstimo</h1>
+        <p>
+          Preencha os campos abaixo para estimar o valor da parcela, o total pago e o total de juros.
+          Os resultados são uma simulação e podem variar conforme tarifas, seguros e regras do credor.
+        </p>
+      </header>
+
+      <section aria-labelledby="titulo-simulacao">
+        <h2 id="titulo-simulacao">Informações da simulação</h2>
+
+        <form id="loan-form" novalidate>
+          <fieldset>
+            <legend>Dados do empréstimo</legend>
+
+            <div class="field">
+              <label for="principal">Valor do empréstimo</label>
+              <div class="control">
+                <span aria-hidden="true">R$</span>
+                <input
+                  id="principal"
+                  name="principal"
+                  type="text"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  placeholder="Ex.: 10.000,00"
+                  aria-describedby="ajuda-principal"
+                  required
+                />
+              </div>
+              <p id="ajuda-principal" class="help">Informe o valor total que você pretende contratar.</p>
+            </div>
+
+            <div class="field">
+              <label for="rate">Taxa de juros ao mês</label>
+              <div class="control">
+                <input
+                  id="rate"
+                  name="rate"
+                  type="text"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  placeholder="Ex.: 2,49"
+                  aria-describedby="ajuda-rate"
+                  required
+                />
+                <span aria-hidden="true">%</span>
+              </div>
+              <p id="ajuda-rate" class="help">Use a taxa mensal (a.m.). Se você só tiver a anual, converta antes.</p>
+            </div>
+
+            <div class="field">
+              <label for="months">Número de parcelas</label>
+              <input
+                id="months"
+                name="months"
+                type="number"
+                inputmode="numeric"
+                min="1"
+                step="1"
+                placeholder="Ex.: 24"
+                aria-describedby="ajuda-months"
+                required
+              />
+              <p id="ajuda-months" class="help">Quantidade de meses do contrato.</p>
+            </div>
+
+            <div class="field">
+              <label for="start-date">Data de início (opcional)</label>
+              <input
+                id="start-date"
+                name="startDate"
+                type="month"
+                aria-describedby="ajuda-start"
+              />
+              <p id="ajuda-start" class="help">Se informado, você pode montar um cronograma de pagamentos na página.</p>
+            </div>
+          </fieldset>
+
+          <div class="actions">
+            <button type="submit" id="btn-calc">Calcular</button>
+            <button type="button" id="btn-reset">Limpar</button>
+          </div>
+
+          <p class="note" id="disclaimer">
+            Atenção: esta ferramenta não inclui IOF, tarifas, seguros ou custos adicionais.
+            Para comparação entre propostas, confirme o CET (Custo Efetivo Total) com a instituição.
+          </p>
+        </form>
+      </section>
+
+      <section aria-labelledby="titulo-resultado">
+        <h2 id="titulo-resultado">Resultado</h2>
+
+        <div id="result" role="status" aria-live="polite" aria-atomic="true">
+          <p class="placeholder">Preencha os campos e clique em “Calcular”.</p>
+
+          <dl class="metrics" hidden>
+            <div>
+              <dt>Parcela estimada</dt>
+              <dd id="out-installment">—</dd>
+            </div>
+            <div>
+              <dt>Total pago</dt>
+              <dd id="out-total">—</dd>
+            </div>
+            <div>
+              <dt>Total de juros</dt>
+              <dd id="out-interest">—</dd>
+            </div>
+          </dl>
+
+          <div id="errors" role="alert" aria-live="assertive"></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="titulo-como-funciona">
+        <h2 id="titulo-como-funciona">Como o cálculo é feito</h2>
+
+        <p>
+          Em empréstimos parcelados com taxa mensal fixa, é comum usar a lógica de amortização com parcelas iguais.
+          Na prática, cada parcela inclui uma parte de juros e uma parte de amortização do saldo devedor.
+        </p>
+
+        <p>
+          A simulação considera a taxa informada ao mês e distribui o pagamento ao longo do número de parcelas.
+          Se o seu contrato tiver parcelas variáveis, carência, entrada, ou juros diários, o resultado pode ficar diferente.
+        </p>
+
+        <h3>O que observar antes de contratar</h3>
+        <ul>
+          <li><strong>CET:</strong> é o indicador que agrega juros e custos cobrados no contrato.</li>
+          <li><strong>Prazos:</strong> prazos maiores reduzem a parcela, mas aumentam o total de juros.</li>
+          <li><strong>Portabilidade:</strong> vale comparar ofertas e renegociar quando a taxa cair.</li>
+          <li><strong>Antecipação:</strong> amortizar parcelas pode reduzir juros, conforme regras do contrato.</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="titulo-faq">
+        <h2 id="titulo-faq">Perguntas frequentes</h2>
+
+        <details>
+          <summary>Qual taxa devo informar: mensal ou anual?</summary>
+          <p>
+            Use a taxa mensal (a.m.). Se você tiver apenas a taxa anual (a.a.), é melhor converter para mensal antes,
+            porque o cálculo usa períodos em meses.
+          </p>
+        </details>
+
+        <details>
+          <summary>Por que o total aqui pode não bater com o banco?</summary>
+          <p>
+            Muitas propostas incluem IOF, seguros, tarifas e outras cobranças. Além disso, alguns contratos
+            usam regras específicas de cálculo, datas de vencimento e juros diários.
+          </p>
+        </details>
+
+        <details>
+          <summary>Como reduzir o valor total pago?</summary>
+          <p>
+            Comparar o CET entre instituições, escolher prazos menores quando possível e amortizar parte do saldo
+            devedor ao longo do tempo costuma reduzir o custo total.
+          </p>
+        </details>
+      </section>
+
+      <aside aria-label="Links úteis">
+        <h2>Outras calculadoras</h2>
+        <ul>
+          <li><a href="/juros-compostos">Calculadora de juros compostos</a></li>
+          <li><a href="/financiamento">Simulador de financiamento</a></li>
+          <li><a href="/cartao-credito">Calculadora de parcelamento no cartão</a></li>
+        </ul>
+      </aside>
+    </article>
+  </main>
+
+  <footer>
+    <div class="container">
+      <nav aria-label="Navegação do rodapé">
+        <ul>
+          <li><a href="/sobre">Sobre</a></li>
+          <li><a href="/contato">Contato</a></li>
+          <li><a href="/privacidade">Privacidade</a></li>
+          <li><a href="/termos">Termos</a></li>
+        </ul>
+      </nav>
+
+      <p>
+        © <span id="year">2026</span> Calculadoras. Conteúdo informativo.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
